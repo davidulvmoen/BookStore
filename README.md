@@ -13,5 +13,5 @@ Download:<br>
 Open in Visual Studio<br>
 Restore nuget packages<br>
 Run webapplication (BookStore.GUI)<br>
-<br><br>
-<img src="https://raw.githubusercontent.com/davidulvmoen/BookStore/master/app.jpg">
+<br>
+<img src="https://raw.githubusercontent.com/davidulvmoen/BookStore/master/app.jpg" border="1">
