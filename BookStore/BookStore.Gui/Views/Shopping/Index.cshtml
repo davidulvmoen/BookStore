@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <script src="~/Scripts/jquery-3.2.1.js"></script>
+    <title>Index</title>    
+	<link href="~/Scripts/default.css" rel="stylesheet" />
+    <script>
+
+        $(document).ready(function(){
+
+        	$("#btnSearch").click(function (e) {
+        		var find = $("#txtSearch").val();
+
+        		if (find.length == 0) {
+        			$("#lblMessage").text("Sökord...");
+        		}
+        		else {
+        			$("#books").empty();
+
+        			$.get("/Shopping/Search/", { searchString : find }, function (data) {
+        				$.each(data, function (key, val) {
+        					$("#books").append('<option value=' + val.ISBN + '>' + val.Title + '</option>');
+        					console.log('<option value=' + val.ISBN + '>' + val.Title + '</option>');
+        				});
+        			});    
+        		}
+
+            });
+
+            $("#btnAdd").click(function (e) {
+            	var qty = $("#txtQuantity").val();
+                var isbn = $("#books").find(":selected").val();
+                var title = $("#books").find(":selected").text();
+  
+                if (isNaN(qty)) {
+                	$("#lblMessage").text("Kvantitet...");
+                	return;
+                }
+
+                if (qty <= 0) {
+                	$("#lblMessage").text("Kvantitet...");
+                	return;
+                }
+
+                $.post("/Shopping/Add/", { isbn: isbn, qty: qty }, function () {
+                	$("#cart").append('<option value=' + isbn + '>' + title + '</option>');
+                });
+
+            });
+
+            $("#btnRemove").click(function (e) {
+            	var isbn = $("#cart").find(":selected").val();
+
+            	if (isbn) {
+            		$.post("/Shopping/Remove/", { isbn: isbn }, function () {
+            			$("#cart option[value=" + isbn + "]").remove();
+            		});
+            	}
+            	else {
+            		$("#lblMessage").text("Vänligen välj en bok...");
+            	}
+            });
+
+            $("#btnOrder").click(function (e) {
+            	if ($('#cart option').length > 0) {
+            		$.get("/Shopping/Order/", function (data) {
+            			console.log(data);
+
+            			$("#lblMessage").text("");
+
+            			$("#lblMessage").append("<b>ORDERBEKRÄFTELSE</b>").append("<br><br>");
+
+            			$("#lblMessage").append("ISBN &emsp; TITEL &emsp; BESTÄLLT &emsp; LEVERERAT &emsp; REST &emsp; PRIS &emsp; TOTAL<br>");
+
+            			$.each(data.CartItems, function (key, val) {
+            				$("#lblMessage").append(val.ISBN + ", " + val.Title + ", " + val.Quantity + ", " + val.DeliveredQuantity + ", " + val.RestQuantity + ", " + val.Price + ", " + val.Total + "<br>");
+            			});
+
+            			$("#lblMessage").append("<br>ORDERTOTAL:" + data.Total);
+
+            			$("#books").empty();
+            			$("#cart").empty();
+            			$("#txtQuantity").text("");
+            			$("#txtSearch").text("");
+            		});
+            	}
+            	else {
+            		$("#lblMessage").text("Kundvagnen är tom...");
+            	}
+            });
+
+            $(document).ajaxError(function(e, xhr) {
+            	$("#lblMessage").text(xhr.status + " " + xhr.statusText);
+            });
+        });
+
+    </script>
+</head>
+<body>
+	<br />
+	<br />
+    <input id="txtSearch" placeholder="Sökord" />
+    <br />
+    <button id="btnSearch">Sök bok</button>
+    
+    <br /><br />
+
+	Böcker<br />
+    <select id="books"></select>
+    <br />
+    <input id="txtQuantity" type="number" placeholder="Kvantitet" />
+    <br />
+    <button id="btnAdd">Köp vald bok</button>
+
+    <br /><br />
+
+    Kundvagn<br />
+    <select id="cart"></select>
+    <br />
+    <button id="btnRemove">Radera vald bok</button>
+
+    <br /><br />
+
+    <button id="btnOrder">Beställ böcker</button>
+
+    <br /><br />
+    <label id="lblMessage"></label>
+</body>
+</html>
